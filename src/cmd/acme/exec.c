@@ -149,7 +149,7 @@ lookup(Rune *r, int n)
 int
 isexecc(int c)
 {
-	if(isfilec(c))
+	if(isfilec(c) && c != ' ')
 		return 1;
 	return c=='<' || c=='|' || c=='>';
 }
@@ -501,7 +501,9 @@ getname(Text *t, Text *argt, Rune *arg, int narg, int isput)
 	if(promote){
 		n = narg;
 		if(n <= 0){
+			runetr(t->file->name, t->file->nname, replacespace, ' ');
 			s = runetobyte(t->file->name, t->file->nname);
+			runetr(t->file->name, t->file->nname, ' ', replacespace);
 			return s;
 		}
 		/* prefix with directory name if necessary */
@@ -528,6 +530,7 @@ getname(Text *t, Text *argt, Rune *arg, int narg, int isput)
 			runemove(r, arg, n);
 		}
 	}
+	runetr(r, n, replacespace, ' ');
 	s = runetobyte(r, n);
 	free(r);
 	if(strlen(s) == 0){
@@ -706,7 +709,9 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	DigestState *h;
 
 	w = f->curtext->w;
+	runetr(namer, nname, replacespace, ' ');
 	name = runetobyte(namer, nname);
+	runetr(namer, nname, ' ', replacespace);
 	d = dirstat(name);
 	if(d!=nil && runeeq(namer, nname, f->name, f->nname)){
 		if(f->dev!=d->dev || f->qidpath!=d->qid.path || f->mtime != d->mtime)

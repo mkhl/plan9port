@@ -554,6 +554,7 @@ int			messagesize;		/* negotiated in 9P version setup */
 int			globalautoindent;
 int			dodollarsigns;
 char*		mtpt;
+Rune		replacespace;
 
 enum
 {
