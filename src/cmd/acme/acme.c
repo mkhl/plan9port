@@ -163,7 +163,7 @@ threadmain(int argc, char *argv[])
 		threadexitsall("geninitdraw");
 	}
 */
-	if(initdraw(derror, fontnames[0], "ACME") < 0){
+	if(initdraw(derror, fontnames[0], "acme") < 0){
 		fprint(2, "acme: can't open display: %r\n");
 		threadexitsall("initdraw");
 	}
@@ -984,7 +984,7 @@ iconinit(void)
 		tagcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPurpleblue);
 		tagcols[TEXT] = display->black;
 		tagcols[HTEXT] = display->black;
-	
+
 		/* Yellow */
 		textcols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
 		textcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
@@ -992,7 +992,7 @@ iconinit(void)
 		textcols[TEXT] = display->black;
 		textcols[HTEXT] = display->black;
 	}
-	
+
 	r = Rect(0, 0, Scrollwid+ButtonBorder, font->height+1);
 	if(button && eqrect(r, button->r))
 		return;

@@ -64,11 +64,11 @@ int usegestures = 0;
 int useliveresizing = 0;
 int useoldfullscreen = 0;
 int usebigarrow = 0;
-int pressurestage = 0; 
+int pressurestage = 0;
 int stagebuttons = 0;
 
 static void setprocname(const char*);
-static void sendclick(int); 
+static void sendclick(int);
 
 /*
  * By default, devdraw uses retina displays.
@@ -118,7 +118,7 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	
+
 	setprocname(argv0);
 
 	if (envvar = getenv("devdrawretina"))
@@ -339,14 +339,14 @@ attachscreen(char *label, char *winsize)
 {
 	NSPasteboard *b;
 	NSDragOperation op;
-	
+
 	op = [arg draggingSourceOperationMask];
 	b = [arg draggingPasteboard];
-	
+
 	if([[b types] containsObject:NSFilenamesPboardType])
 	if(op&NSDragOperationLink)
 		return NSDragOperationLink;
-	
+
 	return NSDragOperationNone;
 }
 
@@ -439,7 +439,7 @@ makewin(char *s)
 #endif
 	[w setContentMinSize:NSMakeSize(128,128)];
 
-	[w registerForDraggedTypes:[NSArray arrayWithObjects: 
+	[w registerForDraggedTypes:[NSArray arrayWithObjects:
 		NSFilenamesPboardType, nil]];
 
 	win.ofs[0] = w;
@@ -494,7 +494,7 @@ initimg(void)
 	[win.img setSize: ptsize];
 	win.topixelscale = size.width / ptsize.width;
 	win.topointscale = 1.0f / win.topixelscale;
-	
+
 	// NOTE: This is not really the display DPI.
 	// On retina, topixelscale is 2; otherwise it is 1.
 	// This formula gives us 220 for retina, 110 otherwise.
@@ -841,34 +841,34 @@ static void updatecursor(void);
 	gettouch(e, NSTouchPhaseCancelled);
 }
 
- 
-- (void)pressureChangeWithEvent:(NSEvent *)e 
-{ 
-        if(pressurestage == 1 && e.stage == 2){ 
-                switch(stagebuttons = in.mbuttons){ 
-                case 1: 
-                        in.mbuttons = 0; 
-                        sendmouse(); 
-                        in.mbuttons = 4; 
-                        sendmouse(); 
-                        break; 
-                case 2: 
-                        in.mbuttons |= 1; 
-                        sendmouse(); 
-                default: 
-                        break; 
-                } 
-        }else if(pressurestage == 2 && e.stage == 1){ 
-                if(stagebuttons != 0){ 
-                        in.mbuttons = 0; 
-                        sendmouse(); 
-                        in.mbuttons = stagebuttons; 
-                } 
-                stagebuttons = 0; 
-        } 
- 
-        pressurestage = e.stage; 
-} 
+
+- (void)pressureChangeWithEvent:(NSEvent *)e
+{
+        if(pressurestage == 1 && e.stage == 2){
+                switch(stagebuttons = in.mbuttons){
+                case 1:
+                        in.mbuttons = 0;
+                        sendmouse();
+                        in.mbuttons = 4;
+                        sendmouse();
+                        break;
+                case 2:
+                        in.mbuttons |= 1;
+                        sendmouse();
+                default:
+                        break;
+                }
+        }else if(pressurestage == 2 && e.stage == 1){
+                if(stagebuttons != 0){
+                        in.mbuttons = 0;
+                        sendmouse();
+                        in.mbuttons = stagebuttons;
+                }
+                stagebuttons = 0;
+        }
+
+        pressurestage = e.stage;
+}
 
 
 @end
@@ -1076,8 +1076,7 @@ static void
 getmouse(NSEvent *e)
 {
 	float d;
-	int b, m, i;
-	static int accum;
+	int b, m;
 
 	if([WIN isKeyWindow] == 0)
 		return;
@@ -1114,7 +1113,7 @@ getmouse(NSEvent *e)
 		d = [e deltaY];
 #endif
 
-		if((short)d==0) 
+		if((short)d==0)
 			return;
 
 		if(d>0)
@@ -1286,10 +1285,10 @@ togglefs(void)
 
 #if OSX_VERSION >= 100700
 	NSScreen *s, *s0;
-	
+
 	s = [WIN screen];
 	s0 = [[NSScreen screens] objectAtIndex:0];
-	
+
 	if((s==s0 && useoldfullscreen==0) || win.isnfs) {
 		[WIN toggleFullScreen:nil];
 		return;
@@ -1417,7 +1416,7 @@ getsnarf(void)
 	qunlock(&snarfl);
 
 	if(s)
-		return strdup((char*)[s UTF8String]);		
+		return strdup((char*)[s UTF8String]);
 	else
 		return nil;
 }
@@ -1605,7 +1604,7 @@ static void
 setprocname(const char *s)
 {
   CFStringRef process_name;
-  
+
   process_name = CFStringCreateWithBytes(nil, (uchar*)s, strlen(s), kCFStringEncodingUTF8, false);
 
   // Adapted from Chrome's mac_util.mm.
