@@ -615,10 +615,10 @@ mousethread(void *v)
 			}
 			/* scroll buttons, wheels, etc. */
 			if(w != nil && (m.buttons & (8|16))){
-				if((m.buttons >> 1) != 0){
+				if((m.buttons >> 2) != 0){
 					winlock(w, 'M');
 					t->eq0 = ~0;
-					xtextscroll(t, m.buttons>>1);
+					xtextscroll(t, m.buttons>>2);
 					winunlock(w);
 					goto Continue;
 				}
