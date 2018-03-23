@@ -615,6 +615,14 @@ mousethread(void *v)
 			}
 			/* scroll buttons, wheels, etc. */
 			if(w != nil && (m.buttons & (8|16))){
+				if((m.buttons >> 2) != 0){
+					winlock(w, 'M');
+					t->eq0 = ~0;
+					xtextscroll(t, m.buttons>>2);
+					winunlock(w);
+					goto Continue;
+				}
+
 				if(m.buttons & 8)
 					but = Kscrolloneup;
 				else
@@ -976,7 +984,7 @@ iconinit(void)
 		tagcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPurpleblue);
 		tagcols[TEXT] = display->black;
 		tagcols[HTEXT] = display->black;
-	
+
 		/* Yellow */
 		textcols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
 		textcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
@@ -984,7 +992,7 @@ iconinit(void)
 		textcols[TEXT] = display->black;
 		textcols[HTEXT] = display->black;
 	}
-	
+
 	r = Rect(0, 0, Scrollwid+ButtonBorder, font->height+1);
 	if(button && eqrect(r, button->r))
 		return;

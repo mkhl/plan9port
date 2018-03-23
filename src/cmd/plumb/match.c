@@ -16,6 +16,26 @@ nonnil(char *s)
 }
 */
 
+char**
+buildargv(char *s, Exec *e)
+{
+	char **av;
+	int ac;
+
+	ac = 0;
+	av = nil;
+	for(;;){
+		av = erealloc(av, (ac+1) * sizeof(char*));
+		av[ac] = nil;
+		while(*s==' ' || *s=='\t')
+			s++;
+		if(*s == '\0')
+			break;
+		av[ac++] = estrdup(expand(e, s, &s));
+	}
+	return av;
+}
+
 int
 verbis(int obj, Plumbmsg *m, Rule *r)
 {
@@ -78,8 +98,10 @@ int
 verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
 	Resub rs[10];
+	Waitmsg *w;
+	char **argv;
 	char *clickval, *alltext;
-	int p0, p1, ntext;
+	int p0, p1, ntext, pid, ret, fd[3];
 
 	memset(rs, 0, sizeof rs);
 	ntext = -1;
@@ -87,6 +109,23 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 	default:
 		fprint(2, "unimplemented 'matches' object %d\n", obj);
 		break;
+	case OArg:
+		fd[0] = open("/dev/null", OREAD);
+		fd[1] = dup(1, -1);
+		fd[2] = dup(2, -1);
+		argv = buildargv(r->arg, e);
+		pid = threadspawnd(fd, argv[0], argv, m->wdir);
+		free(argv);
+		if(pid == -1)
+			return 0;
+		w = procwait(pid);
+		if(!w) {
+			fprint(2, "No Waitmsg!\n");
+			return 0;
+		}
+		ret = w->msg == nil || w->msg[0] == 0;
+		free(w);
+		return ret;
 	case OData:
 		clickval = plumblookup(m->attr, "click");
 		if(clickval == nil){
@@ -343,26 +382,6 @@ rewrite(Plumbmsg *m, Exec *e)
 			m->ndata = strlen(m->data);
 		}
 	}
-}
-
-char**
-buildargv(char *s, Exec *e)
-{
-	char **av;
-	int ac;
-
-	ac = 0;
-	av = nil;
-	for(;;){
-		av = erealloc(av, (ac+1) * sizeof(char*));
-		av[ac] = nil;
-		while(*s==' ' || *s=='\t')
-			s++;
-		if(*s == '\0')
-			break;
-		av[ac++] = estrdup(expand(e, s, &s));
-	}
-	return av;
 }
 
 Exec*

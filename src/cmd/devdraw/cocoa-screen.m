@@ -64,8 +64,11 @@ int usegestures = 0;
 int useliveresizing = 0;
 int useoldfullscreen = 0;
 int usebigarrow = 0;
+int pressurestage = 0;
+int stagebuttons = 0;
 
 static void setprocname(const char*);
+static void sendclick(int);
 
 /*
  * By default, devdraw uses retina displays.
@@ -115,7 +118,7 @@ threadmain(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	
+
 	setprocname(argv0);
 
 	if (envvar = getenv("devdrawretina"))
@@ -336,14 +339,14 @@ attachscreen(char *label, char *winsize)
 {
 	NSPasteboard *b;
 	NSDragOperation op;
-	
+
 	op = [arg draggingSourceOperationMask];
 	b = [arg draggingPasteboard];
-	
+
 	if([[b types] containsObject:NSFilenamesPboardType])
 	if(op&NSDragOperationLink)
 		return NSDragOperationLink;
-	
+
 	return NSDragOperationNone;
 }
 
@@ -380,6 +383,8 @@ enum
 		| NSClosableWindowMask
 		| NSMiniaturizableWindowMask
 		| NSResizableWindowMask
+//		| NSTexturedBackgroundWindowMask
+//		| NSFullSizeContentViewWindowMask
 };
 
 static void
@@ -387,6 +392,7 @@ makewin(char *s)
 {
 	NSRect r, sr;
 	NSWindow *w;
+	NSVisualEffectView *vis;
 	Rectangle wr;
 	int i, set;
 
@@ -414,6 +420,17 @@ makewin(char *s)
 		backing:NSBackingStoreBuffered defer:NO];
 	[w setTitle:@"devdraw"];
 
+//	w.titleVisibility = NSWindowTitleHidden;
+	w.titlebarAppearsTransparent = YES;
+//	w.styleMask |= NSFullSizeContentViewWindowMask;
+
+	w.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
+
+        vis = [[NSVisualEffectView new] initWithFrame:NSMakeRect(0, 0, r.size.width, r.size.height)];
+        vis.material = NSVisualEffectMaterialAppearanceBased  ;  //Dark,MediumLight,PopOver,UltraDark,AppearanceBased,Titlebar,Menu
+        vis.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+        vis.state = NSVisualEffectStateActive;
+
 	if(!set)
 		[w center];
 #if OSX_VERSION >= 100700
@@ -422,7 +439,7 @@ makewin(char *s)
 #endif
 	[w setContentMinSize:NSMakeSize(128,128)];
 
-	[w registerForDraggedTypes:[NSArray arrayWithObjects: 
+	[w registerForDraggedTypes:[NSArray arrayWithObjects:
 		NSFilenamesPboardType, nil]];
 
 	win.ofs[0] = w;
@@ -438,6 +455,9 @@ makewin(char *s)
 	win.isofs = 0;
 	win.content = [contentview new];
 	[WIN setContentView:win.content];
+//	[[WIN contentView] setWantsLayer:YES];
+	[[WIN contentView] setAllowsVibrancy:YES];
+//        [[WIN contentView] addSubview:vis];
 
 	topwin();
 }
@@ -474,7 +494,7 @@ initimg(void)
 	[win.img setSize: ptsize];
 	win.topixelscale = size.width / ptsize.width;
 	win.topointscale = 1.0f / win.topixelscale;
-	
+
 	// NOTE: This is not really the display DPI.
 	// On retina, topixelscale is 2; otherwise it is 1.
 	// This formula gives us 220 for retina, 110 otherwise.
@@ -683,6 +703,7 @@ drawimg(NSRect dr, uint op)
 
 	LOG(@"dr: %f %f %f %f\n", dr.origin.x, dr.origin.y, dr.size.width, dr.size.height);
 	LOG(@"sr: %f %f %f %f\n", sr.origin.x, sr.origin.y, sr.size.width, sr.size.height);
+
 	if(OSX_VERSION >= 100800){
 		i = CGImageCreateWithImageInRect([win.img CGImage], NSRectToCGRect(dr));
 		c = [[WIN graphicsContext] graphicsPort];
@@ -762,6 +783,7 @@ static void updatecursor(void);
 	else
 		waitimg(500);
 }
+
 - (BOOL)isFlipped
 {
 	return YES;	/* to make the content's origin top left */
@@ -818,6 +840,37 @@ static void updatecursor(void);
 {
 	gettouch(e, NSTouchPhaseCancelled);
 }
+
+
+- (void)pressureChangeWithEvent:(NSEvent *)e
+{
+        if(pressurestage == 1 && e.stage == 2){
+                switch(stagebuttons = in.mbuttons){
+                case 1:
+                        in.mbuttons = 0;
+                        sendmouse();
+                        in.mbuttons = 4;
+                        sendmouse();
+                        break;
+                case 2:
+                        in.mbuttons |= 1;
+                        sendmouse();
+                default:
+                        break;
+                }
+        }else if(pressurestage == 2 && e.stage == 1){
+                if(stagebuttons != 0){
+                        in.mbuttons = 0;
+                        sendmouse();
+                        in.mbuttons = stagebuttons;
+                }
+                stagebuttons = 0;
+        }
+
+        pressurestage = e.stage;
+}
+
+
 @end
 
 static int keycvt[] =
@@ -927,6 +980,8 @@ getkeyboard(NSEvent *e)
 	case NSFlagsChanged:
 		if(in.mbuttons || in.kbuttons){
 			in.kbuttons = 0;
+			if(m & NSControlKeyMask)
+				in.kbuttons |= 1;
 			if(m & NSAlternateKeyMask)
 				in.kbuttons |= 2;
 			if(m & NSCommandKeyMask)
@@ -1059,11 +1114,17 @@ getmouse(NSEvent *e)
 #else
 		d = [e deltaY];
 #endif
+
+		if((short)d==0)
+			return;
+
 		if(d>0)
 			in.mscroll = 8;
 		else
 		if(d<0)
 			in.mscroll = 16;
+
+		in.mscroll |= ((short)d)<<1;
 		break;
 
 	case NSMouseMoved:
@@ -1226,10 +1287,10 @@ togglefs(void)
 
 #if OSX_VERSION >= 100700
 	NSScreen *s, *s0;
-	
+
 	s = [WIN screen];
 	s0 = [[NSScreen screens] objectAtIndex:0];
-	
+
 	if((s==s0 && useoldfullscreen==0) || win.isnfs) {
 		[WIN toggleFullScreen:nil];
 		return;
@@ -1357,7 +1418,7 @@ getsnarf(void)
 	qunlock(&snarfl);
 
 	if(s)
-		return strdup((char*)[s UTF8String]);		
+		return strdup((char*)[s UTF8String]);
 	else
 		return nil;
 }
@@ -1545,7 +1606,7 @@ static void
 setprocname(const char *s)
 {
   CFStringRef process_name;
-  
+
   process_name = CFStringCreateWithBytes(nil, (uchar*)s, strlen(s), kCFStringEncodingUTF8, false);
 
   // Adapted from Chrome's mac_util.mm.
