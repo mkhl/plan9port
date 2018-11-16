@@ -46,7 +46,7 @@ case "$tag" in
 	esac
 	;;
 *Darwin*x86_64*)
-	ld="${CC9:-gcc} -m64"
+	ld="${CC9:-clang} -m64 -fsanitize=thread"
 	;;
 *Darwin*)
 	ld="${CC9:-gcc} -m32"

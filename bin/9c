@@ -73,6 +73,7 @@ useclang()
 		-Wno-unneeded-internal-declaration \
 		-fsigned-char \
 		-fno-caret-diagnostics \
+		-fsanitize=thread \
 	"
 	cflags="$ngflags -g"
 }
