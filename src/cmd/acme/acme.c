@@ -262,6 +262,8 @@ threadmain(int argc, char *argv[])
 				error("initializing columns");
 		}
 		c = row.col[row.ncol-1];
+		rfget(0, TRUE, FALSE, fontnames[0]);
+
 		if(argc == 0)
 			readfile(c, wdir);
 		else
