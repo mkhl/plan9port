@@ -1705,9 +1705,17 @@ Hard:
 	}
 
 	if(arg){
-		news = emalloc(strlen(t) + 1 + 1 + strlen(arg) + 1 + 1);
+		news = emalloc(22 + strlen(t) + 1 + 1 + strlen(arg) + 1 + 1);
 		if(news){
-			sprint(news, "%s '%s'", t, arg);	/* BUG: what if quote in arg? */
+			sprint(news, ". $PLAN9/lib/acme.rc; %s '%s'", t, arg);	/* BUG: what if quote in arg? */
+			free(s);
+			t = news;
+			c->text = news;
+		}
+	}else{
+		news = emalloc(22 + strlen(t) + 1);
+		if(news){
+			sprint(news, ". $PLAN9/lib/acme.rc; %s", t);
 			free(s);
 			t = news;
 			c->text = news;
