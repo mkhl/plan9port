@@ -102,11 +102,6 @@ threadmain(int argc, char *argv[])
 		if(fontnames[1] == nil)
 			goto Usage;
 		break;
-	case 't':
-		fontnames[2] = ARGF();
-		if(fontnames[2] == nil)
-			goto Usage;
-		break;
 	case 'l':
 		loadfile = ARGF();
 		if(loadfile == nil)
@@ -119,6 +114,11 @@ threadmain(int argc, char *argv[])
 		break;
 	case 'r':
 		swapscrollbuttons = TRUE;
+		break;
+	case 't':
+		fontnames[2] = ARGF();
+		if(fontnames[2] == nil)
+			goto Usage;
 		break;
 	case 'W':
 		winsize = ARGF();
