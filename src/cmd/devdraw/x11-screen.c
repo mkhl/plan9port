@@ -369,6 +369,8 @@ runxevent(XEvent *xev)
 		be = (XButtonEvent*)xev;
 		if(be->button == 1) {
 			if(_x.kstate & ControlMask)
+				be->button = 1;
+			else if(_x.kstate & Mod4Mask)
 				be->button = 2;
 			else if(_x.kstate & Mod1Mask)
 				be->button = 3;
@@ -416,12 +418,20 @@ runxevent(XEvent *xev)
 				c |= Mod1Mask;
 			else
 				c &= ~Mod1Mask;
+			goto kbutton;
+		case XK_Super_L:
+			if(xev->type == KeyPress)
+				c |= Mod4Mask;
+			else
+				c &= ~Mod4Mask;
 		kbutton:
 			_x.kstate = c;
 			if(m.buttons || _x.kbuttons) {
 				_x.altdown = 0; // used alt
 				_x.kbuttons = 0;
 				if(c & ControlMask)
+					_x.kbuttons |= 1;
+				if(c & Mod4Mask)
 					_x.kbuttons |= 2;
 				if(c & Mod1Mask)
 					_x.kbuttons |= 4;
