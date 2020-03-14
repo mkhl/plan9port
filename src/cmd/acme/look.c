@@ -378,7 +378,7 @@ search(Text *ct, Rune *r, uint n)
 int
 isfilec(Rune r)
 {
-	static Rune Lx[] = { '.', '-', '+', '/', ':', 0 };
+	static Rune Lx[] = { '.', '-', '+', '/', ':', '@', '~', 0 };
 	if(isalnum(r))
 		return TRUE;
 	if(runestrchr(Lx, r))
@@ -797,9 +797,11 @@ openfile(Text *t, Expand *e)
 				runemove(rp, ow->incl[i], n);
 				winaddincl(w, rp, n);
 			}
-			w->autoindent = ow->autoindent;
+			for(i=0; i < NINDENT; i++)
+				w->indent[i] = ow->indent[i];
 		}else
-			w->autoindent = globalautoindent;
+			for(i=0; i < NINDENT; i++)
+				w->indent[i] = globalindent[i];
 		xfidlog(w, "new");
 	}
 	if(e->a1 == e->a0)
